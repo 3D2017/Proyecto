@@ -34,3 +34,6 @@ sysinfo.txt
 *.unitypackage
 Proyecto 3D/Library/
 Proyecto 3D/Temp/
+Proyecto 3D/ProjectSettings/..svnbridge/
+Proyecto 3D/Assets/..svnbridge/
+Proyecto 3D - copia/
