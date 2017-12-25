@@ -169,12 +169,19 @@ public class OBJLoader
         }
         return matlList.ToArray();
     }
+	
+	public static GameObject LoadOBJFile(string fn) {
+		string meshName = Path.GetFileNameWithoutExtension(fn);
+		var fileContents = new List<string>();
 
-    public static GameObject LoadOBJFile(string fn)
+		foreach (string ln in File.ReadAllLines(fn))
+			fileContents.Add(ln);
+
+		return LoadOBJ(meshName, fileContents);
+	}
+
+    public static GameObject LoadOBJ(string meshName, List<string> fileContents)
     {
-
-        string meshName = Path.GetFileNameWithoutExtension(fn);
-
         bool hasNormals = false;
         //OBJ LISTS
         List<Vector3> vertices = new List<Vector3>();
@@ -191,12 +198,8 @@ public class OBJLoader
         List<OBJFace> faceList = new List<OBJFace>();
         string cmaterial = "";
         string cmesh = "default";
-        //CACHE
-        Material[] materialCache = null;
-        //save this info for later
-        FileInfo OBJFileInfo = new FileInfo(fn);
          
-        foreach (string ln in File.ReadAllLines(fn))
+        foreach (string ln in fileContents)
         {
             if (ln.Length > 0 && ln[0] != '#')
             {
@@ -206,11 +209,6 @@ public class OBJLoader
 
                 if (cmps[0] == "mtllib")
                 {
-                    //load cache
-                    string pth = OBJGetFilePath(data, OBJFileInfo.Directory.FullName + Path.DirectorySeparatorChar, meshName);
-                    if (pth != null)
-                        materialCache = LoadMTLFile(pth);
-
                 }
                 else if ((cmps[0] == "g" || cmps[0] == "o") && splitByMaterial == false)
                 {
@@ -422,7 +420,6 @@ public class OBJLoader
              m.RecalculateNormals();   
             }
             m.RecalculateBounds();
-            ;
 
             MeshFilter mf = subObject.AddComponent<MeshFilter>();
             MeshRenderer mr = subObject.AddComponent<MeshRenderer>();
@@ -430,24 +427,7 @@ public class OBJLoader
             Material[] processedMaterials = new Material[meshMaterialNames.Count];
             for(int i=0 ; i < meshMaterialNames.Count; i++)
             {
-                
-                if (materialCache == null)
-                {
-                    processedMaterials[i] = new Material(Shader.Find("Standard (Specular setup)"));
-                }
-                else
-                {
-                    Material mfn = Array.Find(materialCache, x => x.name == meshMaterialNames[i]); ;
-                    if (mfn == null)
-                    {
-                        processedMaterials[i] = new Material(Shader.Find("Standard (Specular setup)"));
-                    }
-                    else
-                    {
-                        processedMaterials[i] = mfn;
-                    }
-                    
-                }
+                processedMaterials[i] = new Material(Shader.Find("Standard (Specular setup)"));
                 processedMaterials[i].name = meshMaterialNames[i];
             }
 

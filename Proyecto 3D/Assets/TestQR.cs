@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Vuforia;
 using ZXing;
@@ -33,6 +34,8 @@ public class TestQR : MonoBehaviour {
 		}
 	}
 
+	public static List<string> loadedQRs = new List<string>();
+
 	void Update() {
 		if (!mFormatRegistered) return;
 		
@@ -42,17 +45,14 @@ public class TestQR : MonoBehaviour {
 			// decode the current frame
 			camSize = new Vector2(image.Width, image.Height);
 			var result = barcodeReader.Decode(image.Pixels, image.Width, image.Height, RGBLuminanceSource.BitmapFormat.RGBA32);
-			if (result != null) {
+			if (result != null && !loadedQRs.Contains(result.Text)) {
 				Debug.Log("DECODED TEXT FROM QR: " + result.Text);
 				points = result.ResultPoints;
 				Rect r = GetPercentageRect(points);
 				currentArea = r.width * r.height;
 				if (currentArea >= minAreaForUserTargetCreation) {
-					targetBuilder.BuildNewTarget(result.Text, 1);
-
-					// download model
-
-					enabled = false;
+					targetBuilder.BuildNewTarget("" + loadedQRs.Count, 1);
+					loadedQRs.Add(result.Text);
 				}
 			}
 		}

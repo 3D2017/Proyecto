@@ -1,7 +1,14 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using Vuforia;
 
 public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
+	public ImageTargetBehaviour itb;
+	Renderer[] objRenderers = new Renderer[0];
+
+	public float wantedScale = 0.8f;
+
 	void Start() {
 		TrackableBehaviour trackableBehaviour = GetComponent<TrackableBehaviour>();
 
@@ -9,7 +16,37 @@ public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
 			trackableBehaviour.RegisterTrackableEventHandler(this);
 		}
 
-		ShowObject(false);
+		//ShowObject(false);
+
+		StartCoroutine(loadObj());
+	}
+	IEnumerator loadObj() {
+		using (WWW www = new WWW(TestQR.loadedQRs[int.Parse(itb.TrackableName)])) {
+			yield return www;
+			List<string> lines = new List<string>(www.text.Split('\n'));
+			var obj = OBJLoader.LoadOBJ("QR object downloaded", lines);
+			objRenderers = obj.GetComponentsInChildren<Renderer>();
+			Bounds b = new Bounds();
+			bool initiated = false;
+			foreach (var r in objRenderers) {
+				if (!initiated) {
+					b = r.bounds;
+					initiated = true;
+				} else {
+					b.Encapsulate(r.bounds);
+				}
+			}
+			float highestSide = Mathf.Max(b.extents.x, b.extents.y, b.extents.z);
+			if (highestSide > 0) {
+				Vector3 scale = obj.transform.localScale;
+				scale /= highestSide * wantedScale;
+				obj.transform.localScale = scale;
+				obj.transform.parent = transform;
+			}
+			Vector3 sc2 = transform.localScale;
+			sc2.x = -sc2.x;
+			transform.localScale = sc2;
+		}
 	}
 
 	/// <summary>
@@ -29,9 +66,7 @@ public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
 		}
 	}
 
-	public Renderer renderer;
-
 	public void ShowObject(bool tf) {
-		renderer.enabled = tf;
+		foreach (var r in objRenderers) r.enabled = tf;
 	}
 }
