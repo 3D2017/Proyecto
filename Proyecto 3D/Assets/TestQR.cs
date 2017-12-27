@@ -14,7 +14,11 @@ public class TestQR : MonoBehaviour {
 	Vector2 camSize;
 	ResultPoint[] points = new ResultPoint[0];
 	IBarcodeReader barcodeReader = new BarcodeReader();
-	Image.PIXEL_FORMAT mPixelFormat = Image.PIXEL_FORMAT.RGBA8888;
+	Image.PIXEL_FORMAT mPixelFormat;
+	Image.PIXEL_FORMAT[] mPixelFormatOpts = new Image.PIXEL_FORMAT[] {
+		Image.PIXEL_FORMAT.RGBA8888,
+		Image.PIXEL_FORMAT.RGB888
+	};
 	bool mFormatRegistered = false;
 
 	void Start() {
@@ -24,10 +28,16 @@ public class TestQR : MonoBehaviour {
 
 	void OnVuforiaStarted() {
 		CameraDevice.Instance.SetFocusMode(CameraDevice.FocusMode.FOCUS_MODE_CONTINUOUSAUTO);
-		if (CameraDevice.Instance.SetFrameFormat(mPixelFormat, true)) {
-			Debug.Log("Successfully registered pixel format " + mPixelFormat.ToString());
-			mFormatRegistered = true;
-		} else {
+
+		mFormatRegistered = false;
+		foreach (var format in mPixelFormatOpts) {
+			if (CameraDevice.Instance.SetFrameFormat(format, true)) {
+				Debug.Log("Successfully registered pixel format " + mPixelFormat.ToString());
+				mFormatRegistered = true;
+				mPixelFormat = format;
+			}
+		}
+		if (!mFormatRegistered) {
 			Debug.LogError(
 				"Failed to register pixel format " + mPixelFormat.ToString() +
 				"\n the format may be unsupported by your device;" +
@@ -52,7 +62,7 @@ public class TestQR : MonoBehaviour {
 		try {
 			// decode the current frame
 			camSize = new Vector2(image.Width, image.Height);
-			var result = barcodeReader.Decode(image.Pixels, image.Width, image.Height, RGBLuminanceSource.BitmapFormat.RGBA32);
+			var result = barcodeReader.Decode(image.Pixels, image.Width, image.Height, mPixelFormat == Image.PIXEL_FORMAT.RGBA8888 ? RGBLuminanceSource.BitmapFormat.RGBA32 : RGBLuminanceSource.BitmapFormat.RGB24);
 			if (result != null && !loadedQRs.Contains(result.Text)) {
 				Debug.Log("DECODED TEXT FROM QR: " + result.Text);
 				points = result.ResultPoints;

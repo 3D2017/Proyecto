@@ -925,8 +925,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetBuilder: {fileID: 1166513210}
-  minAreaForUserTargetCreation: 0.25
-  debug: 0
+  minAreaForUserTargetCreation: 0.2
+  debug: 1
   debugMarker: {fileID: 2800000, guid: 025ca69482021814da820778b5c7a6e2, type: 3}
 --- !u!4 &1983465923
 Transform:
