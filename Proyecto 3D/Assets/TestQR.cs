@@ -18,10 +18,12 @@ public class TestQR : MonoBehaviour {
 	bool mFormatRegistered = false;
 
 	void Start() {
-		VuforiaARController.Instance.RegisterVuforiaStartedCallback(OnVuforiaStarted);
+		VuforiaARController.Instance.RegisterVuforiaStartedCallback(OnVuforiaStarted);  
+		VuforiaARController.Instance.RegisterOnPauseCallback(OnPaused);
 	}
 
 	void OnVuforiaStarted() {
+		CameraDevice.Instance.SetFocusMode(CameraDevice.FocusMode.FOCUS_MODE_CONTINUOUSAUTO);
 		if (CameraDevice.Instance.SetFrameFormat(mPixelFormat, true)) {
 			Debug.Log("Successfully registered pixel format " + mPixelFormat.ToString());
 			mFormatRegistered = true;
@@ -31,6 +33,12 @@ public class TestQR : MonoBehaviour {
 				"\n the format may be unsupported by your device;" +
 				"\n consider using a different pixel format.");
 			mFormatRegistered = false;
+		}
+	}
+	private void OnPaused(bool paused) {    
+		if (!paused)  {
+			// Set again autofocus mode when app is resumed
+			CameraDevice.Instance.SetFocusMode(CameraDevice.FocusMode.FOCUS_MODE_CONTINUOUSAUTO);    
 		}
 	}
 
