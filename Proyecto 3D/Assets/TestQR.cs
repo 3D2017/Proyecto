@@ -8,6 +8,7 @@ public class TestQR : MonoBehaviour {
 	public UserDefinedTargetBuildingBehaviour targetBuilder;
 	public float minAreaForUserTargetCreation = .3f;
 	public bool debug = false;
+	public string hardcodedURL = "";
 	public Texture2D debugMarker;
 
 	float currentArea;
@@ -28,22 +29,21 @@ public class TestQR : MonoBehaviour {
 
 	void OnVuforiaStarted() {
 		CameraDevice.Instance.SetFocusMode(CameraDevice.FocusMode.FOCUS_MODE_CONTINUOUSAUTO);
-
-		mFormatRegistered = false;
+		
 		foreach (var format in mPixelFormatOpts) {
 			if (CameraDevice.Instance.SetFrameFormat(format, true)) {
 				Debug.Log("Successfully registered pixel format " + mPixelFormat.ToString());
 				mFormatRegistered = true;
 				mPixelFormat = format;
+				return;
 			}
 		}
-		if (!mFormatRegistered) {
-			Debug.LogError(
-				"Failed to register pixel format " + mPixelFormat.ToString() +
-				"\n the format may be unsupported by your device;" +
-				"\n consider using a different pixel format.");
-			mFormatRegistered = false;
-		}
+
+		Debug.LogError(
+			"Failed to register pixel format " + mPixelFormat.ToString() +
+			"\n the format may be unsupported by your device;" +
+			"\n consider using a different pixel format.");
+		mFormatRegistered = false;
 	}
 	private void OnPaused(bool paused) {    
 		if (!paused)  {
@@ -53,9 +53,19 @@ public class TestQR : MonoBehaviour {
 	}
 
 	public static List<string> loadedQRs = new List<string>();
+	string decodedText = "";
 
 	void Update() {
+		decodedText = "";
 		if (!mFormatRegistered) return;
+
+		if (hardcodedURL != "") {
+			targetBuilder.BuildNewTarget("" + loadedQRs.Count, 1);
+			loadedQRs.Add(hardcodedURL);
+			
+			hardcodedURL = "";
+			return;
+		}
 		
 		Image image = CameraDevice.Instance.GetCameraImage(mPixelFormat);
 
@@ -63,12 +73,12 @@ public class TestQR : MonoBehaviour {
 			// decode the current frame
 			camSize = new Vector2(image.Width, image.Height);
 			var result = barcodeReader.Decode(image.Pixels, image.Width, image.Height, mPixelFormat == Image.PIXEL_FORMAT.RGBA8888 ? RGBLuminanceSource.BitmapFormat.RGBA32 : RGBLuminanceSource.BitmapFormat.RGB24);
-			if (result != null && !loadedQRs.Contains(result.Text)) {
-				Debug.Log("DECODED TEXT FROM QR: " + result.Text);
+			decodedText = result.Text;
+			if (result != null) {
 				points = result.ResultPoints;
 				Rect r = GetPercentageRect(points);
 				currentArea = r.width * r.height;
-				if (currentArea >= minAreaForUserTargetCreation) {
+				if (!loadedQRs.Contains(result.Text) && currentArea >= minAreaForUserTargetCreation) {
 					targetBuilder.BuildNewTarget("" + loadedQRs.Count, 1);
 					loadedQRs.Add(result.Text);
 				}
@@ -80,6 +90,7 @@ public class TestQR : MonoBehaviour {
 	void OnGUI() {
 		if (!mFormatRegistered) return;
 		if (!debug) return;
+		if (decodedText == "") return;
 
 		for (int i = 0; i < points.Length; i++) {
 			GUI.DrawTexture(new Rect(
@@ -93,7 +104,7 @@ public class TestQR : MonoBehaviour {
 		r.y *= Screen.height;
 		r.width *= Screen.width;
 		r.height *= Screen.height;
-		GUI.Box(r, currentArea + " < " + minAreaForUserTargetCreation);
+		GUI.Box(r, currentArea + " < " + minAreaForUserTargetCreation + "\n\n" + decodedText);
 	}
 
 	public Rect GetPercentageRect(ResultPoint[] points) {
