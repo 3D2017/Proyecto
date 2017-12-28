@@ -58,13 +58,13 @@ public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
 			float highestSide = Mathf.Max(b.extents.x, b.extents.y, b.extents.z);
 			if (highestSide > 0) {
 				Vector3 scale = obj.transform.localScale;
-				scale /= highestSide * wantedScale;
+				scale /= highestSide;
+				scale *= wantedScale;
 				obj.transform.localScale = scale;
-				obj.transform.parent = transform;
 			}
-			Vector3 sc2 = transform.localScale;
-			sc2.x = -sc2.x;
-			transform.localScale = sc2;
+			transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+			obj.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+			obj.transform.parent = transform;
 		}
 	}
 

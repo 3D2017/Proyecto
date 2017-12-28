@@ -902,7 +902,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itb: {fileID: 1987624191}
   text: {fileID: 1800754411}
-  wantedScale: 1
+  wantedScale: 0.5
   baseMaterial: {fileID: 2100000, guid: 1123515d44fa2954c9634effb2c48653, type: 2}
 --- !u!114 &1987624191
 MonoBehaviour:
