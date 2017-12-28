@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,12 +7,13 @@ using Vuforia;
 
 public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
 	public ImageTargetBehaviour itb;
+	public Text text;
+	public float wantedScale = 1f;
+	public Material baseMaterial;
+
 	Renderer[] objRenderers = new Renderer[0];
 
-	public Text text;
-
-	public float wantedScale = 0.8f;
-
+	
 	void Start() {
 		if (TestQR.loadedQRs.Count == 0) {
 			// app just started, ignore this start
@@ -30,12 +32,18 @@ public class TrackableOpts : MonoBehaviour, ITrackableEventHandler {
 	}
 	IEnumerator loadObj() {
 		using (WWW www = new WWW(TestQR.loadedQRs[int.Parse(itb.TrackableName)])) {
-			text.text = "Descargando modelo obj";
+			text.text = "Descargando modelo obj...";
 			yield return www;
-			text.text = "Modelo obj descargado, extrayendo...";
+			text.text = "Extrayendo modelo obj...";
 			List<string> lines = new List<string>(www.text.Split('\n'));
-			var obj = OBJLoader.LoadOBJ("QR object downloaded", lines);
-			text.text = "";
+			GameObject obj;
+			try {
+				obj = OBJLoader.LoadOBJ("QR object downloaded", lines, baseMaterial);
+				text.text = "";
+			} catch (Exception e) {
+				text.text = e.ToString();
+				yield break;
+			}
 			objRenderers = obj.GetComponentsInChildren<Renderer>();
 			Bounds b = new Bounds();
 			bool initiated = false;

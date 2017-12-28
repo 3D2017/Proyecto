@@ -8,7 +8,6 @@ public class TestQR : MonoBehaviour {
 	public UserDefinedTargetBuildingBehaviour targetBuilder;
 	public float minAreaForUserTargetCreation = .3f;
 	public bool debug = false;
-	public string hardcodedURL = "";
 	public Texture2D debugMarker;
 
 	float currentArea;
@@ -58,14 +57,6 @@ public class TestQR : MonoBehaviour {
 	void Update() {
 		decodedText = "";
 		if (!mFormatRegistered) return;
-
-		if (hardcodedURL != "") {
-			targetBuilder.BuildNewTarget("" + loadedQRs.Count, 1);
-			loadedQRs.Add(hardcodedURL);
-			
-			hardcodedURL = "";
-			return;
-		}
 		
 		Image image = CameraDevice.Instance.GetCameraImage(mPixelFormat);
 
@@ -89,7 +80,6 @@ public class TestQR : MonoBehaviour {
 
 	void OnGUI() {
 		if (!mFormatRegistered) return;
-		if (!debug) return;
 		if (decodedText == "") return;
 
 		for (int i = 0; i < points.Length; i++) {
@@ -98,13 +88,15 @@ public class TestQR : MonoBehaviour {
 				points[i].Y / camSize.y * Screen.height - debugMarker.height / 2f, 
 				debugMarker.width, debugMarker.height), debugMarker);
 		}
-
-		Rect r = GetPercentageRect(points);
-		r.x *= Screen.width;
-		r.y *= Screen.height;
-		r.width *= Screen.width;
-		r.height *= Screen.height;
-		GUI.Box(r, currentArea + " < " + minAreaForUserTargetCreation + "\n\n" + decodedText);
+		
+		if (debug) {
+			Rect r = GetPercentageRect(points);
+			r.x *= Screen.width;
+			r.y *= Screen.height;
+			r.width *= Screen.width;
+			r.height *= Screen.height;
+			GUI.Box(r, currentArea + " < " + minAreaForUserTargetCreation + "\n\n" + decodedText);
+		}
 	}
 
 	public Rect GetPercentageRect(ResultPoint[] points) {

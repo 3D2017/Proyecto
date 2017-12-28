@@ -26,7 +26,7 @@ public class OBJLoader {
 		return new Vector2(x, y);
 	}
 
-	public static GameObject LoadOBJ(string meshName, List<string> fileContents) {
+	public static GameObject LoadOBJ(string meshName, List<string> fileContents, Material baseMaterial) {
 		bool hasNormals = false;
 		//OBJ LISTS
 		List<Vector3> vertices = new List<Vector3>();
@@ -220,7 +220,7 @@ public class OBJLoader {
 
 			Material[] processedMaterials = new Material[meshMaterialNames.Count];
 			for (int i = 0; i < meshMaterialNames.Count; i++) {
-				processedMaterials[i] = new Material(Shader.Find("Standard (Specular setup)"));
+				processedMaterials[i] = new Material(baseMaterial);
 				processedMaterials[i].name = meshMaterialNames[i];
 			}
 
