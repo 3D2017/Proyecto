@@ -145,6 +145,8 @@ public class OBJLoader {
 
 		if (objectNames.Count == 0)
 			objectNames.Add("default");
+		if (materialNames.Count == 0)
+			materialNames.Add("");
 
 		//build objects
 		GameObject parentObject = new GameObject(meshName);
